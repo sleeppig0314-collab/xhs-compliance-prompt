@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-小红书违禁词检测工具 v2.9
+小红书违禁词检测工具 v2.10
 用法: python xhs_checker.py "你的文案"
 """
 
@@ -281,6 +281,14 @@ BANNED_WORDS = [
     (r"太卷了", "竞争激烈", "低"),
     (r"绝绝紫", "非常惊艳", "中"),
     (r"幼态脸", "年轻气质", "低"),
+    # ========== 2026-06-07 直播带货/博主类 ==========
+    (r"全网首发", "率先推出", "高"),
+    (r"博主推荐", "真诚推荐", "中"),
+    (r"直播间专属", "活动特惠", "中"),
+    (r"限量抢购", "限时优惠", "低"),
+    (r"抢到赚到", "性价比不错", "低"),
+    (r"亏本冲量", "限时让利", "低"),
+    (r"工厂直销", "源头好货", "中"),
 ]
 
 RISK_EMOJI = {"高": "🚨", "中": "⚠️", "低": "📌"}
@@ -306,10 +314,69 @@ def main():
     if len(sys.argv) < 2:
         print("用法: python xhs_checker.py \"你的文案\"")
         print("示例: python xhs_checker.py \"这是最棒的产品，100%有效！\"")
-        print("\n也可以运行交互模式:")
-        print("python xhs_checker.py --interactive")
+        print("\n交互模式: python xhs_checker.py --interactive")
+        print("批量模式: python xhs_checker.py --batch file.txt")
+        print("         python xhs_checker.py --batch   (从 stdin 读取)")
         sys.exit(1)
     
+    if sys.argv[1] == "--batch":
+        # 批量模式：逐行检测
+        if len(sys.argv) >= 3:
+            # 从文件读取
+            try:
+                with open(sys.argv[2], "r", encoding="utf-8") as f:
+                    lines = [l.rstrip("\n") for l in f if l.strip()]
+            except FileNotFoundError:
+                print(f"文件未找到: {sys.argv[2]}")
+                sys.exit(1)
+        else:
+            # 从 stdin 读取
+            print("批量模式 (输入 'done' 结束输入):")
+            print("-" * 40)
+            lines = []
+            while True:
+                try:
+                    l = input()
+                    if l.strip().lower() == "done":
+                        break
+                    if l.strip():
+                        lines.append(l)
+                except EOFError:
+                    break
+        
+        if not lines:
+            print("没有要检测的文案")
+            sys.exit(0)
+        
+        print(f"\n🔍 批量检测 {len(lines)} 条文案")
+        print("=" * 50)
+        total_high = total_med = total_low = 0
+        for i, text in enumerate(lines, 1):
+            violations = check_text(text)
+            by_risk = {"高": [], "中": [], "低": []}
+            seen = set()
+            for word, risk in violations:
+                if word not in seen:
+                    by_risk[risk].append(word)
+                    seen.add(word)
+            n_high = len(by_risk["高"])
+            n_med = len(by_risk["中"])
+            n_low = len(by_risk["低"])
+            total_high += n_high
+            total_med += n_med
+            total_low += n_low
+            tag = "✅" if n_high == 0 and n_med == 0 else ("⚠️" if n_med > 0 else "📌")
+            print(f"\n[{i}/{len(lines)}] {tag} {'✅' if n_high==0 and n_med==0 and n_low==0 else f'🚨{n_high} ⚠️{n_med} 📌{n_low}'}")
+            print(f"  原文: {text[:60]}{'...' if len(text)>60 else ''}")
+            if violations:
+                for level in ["高", "中", "低"]:
+                    if by_risk[level]:
+                        print(f"  {RISK_EMOJI[level]}{level}: {', '.join(by_risk[level])}")
+                print(f"  改写: {rewrite_text(text)[:60]}{'...' if len(rewrite_text(text))>60 else ''}")
+        print("\n" + "=" * 50)
+        print(f"📊 汇总: 🚨高危{total_high} ⚠️中危{total_med} 📌低危{total_low}")
+        return
+
     if sys.argv[1] == "--interactive":
         print("\n🔍 小红书违禁词检测工具 (输入 'quit' 退出)")
         print("=" * 50)
