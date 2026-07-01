@@ -46,6 +46,32 @@ python xhs_checker.py "这是最棒的产品，100%有效！"
   这是很棒的产品，超过9成有效！
 ```
 
+### 方法 3：JSON 模式（适合脚本 / CI/CD）
+
+```bash
+python xhs_checker.py --json "这是最棒的产品，100%有效！"
+```
+
+**JSON 输出示例：**
+```json
+{
+  "text": "这是最棒的产品，100%有效！",
+  "total": 2,
+  "high_risk": ["最", "100%"],
+  "medium_risk": [],
+  "low_risk": [],
+  "rewritten": "这是很棒的产品，超过9成有效！",
+  "pass": false
+}
+```
+
+### 方法 4：批量检测
+
+```bash
+python xhs_checker.py --batch file.txt   # 从文件读取
+python xhs_checker.py --batch            # 从 stdin 读取（输入 'done' 结束）
+```
+
 ---
 
 ## 📁 项目结构

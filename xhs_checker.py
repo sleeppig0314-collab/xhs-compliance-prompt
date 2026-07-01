@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-小红书违禁词检测工具 v2.28
+小红书违禁词检测工具 v2.29
 用法: python xhs_checker.py "你的文案"
 """
 
@@ -641,6 +641,7 @@ def main():
         print("\n交互模式: python xhs_checker.py --interactive")
         print("批量模式: python xhs_checker.py --batch file.txt")
         print("         python xhs_checker.py --batch   (从 stdin 读取)")
+        print("JSON模式:  python xhs_checker.py --json  \"你的文案\"   (结构化输出，适合脚本)")
         sys.exit(1)
     
     if sys.argv[1] == "--batch":
@@ -725,7 +726,33 @@ def main():
             else:
                 print("✅ 未发现违禁词！")
         return
-    
+
+    # JSON 模式：输出结构化数据，适合脚本/CI 调用
+    if sys.argv[1] == "--json":
+        import json
+        if len(sys.argv) < 3:
+            print("用法: python xhs_checker.py --json \"你的文案\"", file=sys.stderr)
+            sys.exit(1)
+        text = sys.argv[2]
+        violations = check_text(text)
+        by_risk = {"高": [], "中": [], "低": []}
+        seen = set()
+        for word, risk in violations:
+            if word not in seen:
+                by_risk[risk].append(word)
+                seen.add(word)
+        result = {
+            "text": text,
+            "total": sum(len(v) for v in by_risk.values()),
+            "high_risk": by_risk["高"],
+            "medium_risk": by_risk["中"],
+            "low_risk": by_risk["低"],
+            "rewritten": rewrite_text(text),
+            "pass": sum(len(v) for v in by_risk.values()) == 0
+        }
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
     text = sys.argv[1]
     violations = check_text(text)
     # 按风险分组
