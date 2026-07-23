@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-小红书违禁词检测工具 v2.44
+小红书违禁词检测工具 v2.45
 用法: python xhs_checker.py "你的文案"
 """
 
