@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-小红书违禁词检测工具 v2.47
+小红书违禁词检测工具 v2.48
 用法: python xhs_checker.py "你的文案"
 """
 
@@ -8,6 +8,24 @@ import sys
 import re
 
 # 风险等级定义：高(🚨)/中(⚠️)/低(📌)
+
+# ---------- 文本规范化：去除干扰字符 ----------
+# 常见绕过检测的不可见字符
+ZWSP = '\u200b'         # 零宽度空格 (Zero Width Space)
+ZWJ  = '\u200d'         # 零宽度连接符 (Zero Width Joiner)
+LTR  = '\u202a'         # 左到右嵌入 (Left-to-Right Embedding)
+RTL  = '\u202b'         # 右到左嵌入 (Right-to-Left Embedding)
+PDF  = '\u202c'         # 格式控制字符 (Pop Directional Formatting)
+LRE  = '\u202d'         # 左到右隔离 (Left-to-Right Isolate)
+RLE  = '\u202e'         # 右到左隔离 (Right-to-Left Isolate)
+INVISIBLE_CHARS = [ZWSP, ZWJ, LTR, RTL, PDF, LRE, RLE]
+
+def normalize(text):
+    """去除文本中的不可见干扰字符，用于检测前规范化"""
+    for ch in INVISIBLE_CHARS:
+        text = text.replace(ch, '')
+    return text
+
 BANNED_WORDS = [
     # ========== 高风险：绝对化/虚假承诺 ==========
     # 最+形容词：精确配对优先（避免 "最棒"→"很棒" 等通用替换不自然）
@@ -960,12 +978,19 @@ BANNED_WORDS = [
     (r"全网最值得去", "值得一去的地方", "中"),
     (r"体验感拉满", "体验感很好", "低"),
     (r"体验感爆棚", "体验感不错", "低"),
+    # 新增：旅游套路/玄学营销类
+    (r"零踩坑", "反馈较好", "中"),
+    (r"绝对不踩雷", "反馈普遍较好", "高"),
+    (r"算完立刻转运", "有助于调整心态", "高"),
+    (r"看完必脱单", "有助于感情顺利", "高"),
+    (r"星座准到可怕", "星座作为一种娱乐参考", "中"),
 ]
 
 RISK_EMOJI = {"高": "🚨", "中": "⚠️", "低": "📌"}
 
 def check_text(text):
     """检测文案中的违禁词，返回 (词, 风险等级) 列表"""
+    text = normalize(text)
     violations = []
     for pattern, _, risk in BANNED_WORDS:
         if re.search(pattern, text):
@@ -976,6 +1001,7 @@ def check_text(text):
 
 def rewrite_text(text):
     """提供改写建议"""
+    text = normalize(text)
     result = text
     for pattern, replacement, _ in BANNED_WORDS:
         result = re.sub(pattern, replacement, result)
