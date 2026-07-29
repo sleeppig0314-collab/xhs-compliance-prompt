@@ -1103,6 +1103,7 @@ def main():
     # JSON 模式：输出结构化数据，适合脚本/CI 调用
     if sys.argv[1] == "--json":
         import json
+        from datetime import datetime
         if len(sys.argv) < 3:
             print("用法: python xhs_checker.py --json \"你的文案\"", file=sys.stderr)
             sys.exit(1)
@@ -1121,7 +1122,9 @@ def main():
             "medium_risk": by_risk["中"],
             "low_risk": by_risk["低"],
             "rewritten": rewrite_text(text),
-            "pass": sum(len(v) for v in by_risk.values()) == 0
+            "pass": sum(len(v) for v in by_risk.values()) == 0,
+            "version": "2.48",
+            "checked_at": datetime.now().isoformat()
         }
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return
