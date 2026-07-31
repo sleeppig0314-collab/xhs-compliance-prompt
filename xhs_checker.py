@@ -218,6 +218,7 @@ BANNED_WORDS = [
     (r"神作", "非常优秀的作品", "低"),
     (r"绝杀", "效果非常好", "低"),
     (r"爆杀", "大幅领先", "低"),
+    (r"绝绝子", "很棒", "低"),
     (r"真的绝", "真的很棒", "中"),
     (r"顶配", "高配", "中"),
     (r"炸裂", "非常出色", "中"),
@@ -563,7 +564,6 @@ BANNED_WORDS = [
     (r"刷脂", "有助于减少体脂", "低"),
     (r"减脂黑科技", "科学减脂方式", "低"),
     # ========== 2026-06-22 情绪表达/社交媒体类新增 ==========
-    (r"绝绝子", "很棒", "低"),
     (r"YYDS", "一直很优秀", "低"),
     (r"永远滴神", "一直很出色", "低"),
     (r"太哇塞了", "太棒了", "低"),
@@ -1134,7 +1134,7 @@ def main():
             "low_risk": by_risk["低"],
             "rewritten": rewrite_text(text),
             "pass": sum(len(v) for v in by_risk.values()) == 0,
-            "version": "2.48",
+            "version": "2.49",
             "checked_at": datetime.now().isoformat()
         }
         print(json.dumps(result, ensure_ascii=False, indent=2))
