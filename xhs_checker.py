@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-小红书违禁词检测工具 v2.57
+小红书违禁词检测工具 v2.58
 用法: python xhs_checker.py "你的文案"
 """
 
@@ -1295,7 +1295,7 @@ def main():
             "low_risk": by_risk["低"],
             "rewritten": rewrite_text(text),
             "pass": sum(len(v) for v in by_risk.values()) == 0,
-            "version": "2.57",
+            "version": "2.58",
             "checked_at": datetime.now().isoformat()
         }
         print(json.dumps(result, ensure_ascii=False, indent=2))
